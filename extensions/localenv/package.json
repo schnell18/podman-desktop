@@ -30,7 +30,7 @@
       "properties": {
         "localenv.rootPath": {
           "type": "string",
-          "default": "",
+          "default": "/Users/justin/localenv",
           "description": "Path to the localenv repository root directory",
           "format": "folder"
         },

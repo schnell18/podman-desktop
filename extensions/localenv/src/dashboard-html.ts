@@ -49,24 +49,24 @@ ${JS}
 
 const CSS = `
 :root {
-  --bg-primary: #1e1e2e;
-  --bg-secondary: #292940;
-  --bg-card: #2a2a3d;
-  --bg-hover: #32324a;
-  --text-primary: #e0e0e0;
-  --text-secondary: #a0a0b0;
-  --text-muted: #707080;
-  --border-color: #3a3a50;
+  --bg-primary: #f8f9fb;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f0f1f4;
+  --text-primary: #1a1a2e;
+  --text-secondary: #555570;
+  --text-muted: #8888a0;
+  --border-color: #e0e0ea;
   --accent: #7c3aed;
   --accent-hover: #6d28d9;
-  --green: #10b981;
-  --green-bg: rgba(16, 185, 129, 0.15);
-  --amber: #f59e0b;
-  --amber-bg: rgba(245, 158, 11, 0.15);
-  --red: #ef4444;
-  --red-bg: rgba(239, 68, 68, 0.15);
-  --orange: #f97316;
-  --orange-bg: rgba(249, 115, 22, 0.15);
+  --green: #059669;
+  --green-bg: rgba(5, 150, 105, 0.1);
+  --amber: #d97706;
+  --amber-bg: rgba(217, 119, 6, 0.1);
+  --red: #dc2626;
+  --red-bg: rgba(220, 38, 38, 0.1);
+  --orange: #ea580c;
+  --orange-bg: rgba(234, 88, 12, 0.1);
   --gray: #6b7280;
   --radius: 8px;
 }
@@ -164,9 +164,10 @@ body {
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.card:hover { border-color: #4a4a60; }
+.card:hover { border-color: #c0c0d0; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
 .card.running { border-left: 3px solid var(--green); }
 .card.partially_running { border-left: 3px solid var(--orange); }
@@ -188,7 +189,7 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: var(--bg-secondary);
+  background: #f0f1f6;
 }
 .card-icon svg { width: 32px; height: 32px; }
 
@@ -244,7 +245,7 @@ body {
 
 .modal {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.3);
   display: flex; align-items: center; justify-content: center;
   z-index: 100;
 }
