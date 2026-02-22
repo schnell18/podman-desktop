@@ -13,6 +13,7 @@ export async function activate(extensionContext: extensionApi.ExtensionContext):
   const pollingInterval = config.get<number>('pollingInterval') ?? 5000;
 
   infraManager = new InfraManager(localenvRoot, composeCommand);
+  infraManager.setSubscriptions(extensionContext.subscriptions);
 
   // Create the Dashboard webview panel
   const panel = extensionApi.window.createWebviewPanel('localenv-dashboard', 'Localenv');

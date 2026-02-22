@@ -13,12 +13,18 @@ export class InfraManager {
   private pollingTimer: ReturnType<typeof setInterval> | undefined;
   private eventDisposable: extensionApi.Disposable | undefined;
   private panel: extensionApi.WebviewPanel | undefined;
+  private webUiPanels: Map<string, extensionApi.WebviewPanel> = new Map();
+  private subscriptions: { dispose(): void }[] | undefined;
 
   constructor(localenvRoot: string, composeCommand: string) {
     this.localenvRoot = localenvRoot;
     this.registry = new ComponentRegistry(localenvRoot);
     this.composeRunner = new ComposeRunner(composeCommand);
     this.hookRunner = new HookRunner(localenvRoot);
+  }
+
+  setSubscriptions(subscriptions: { dispose(): void }[]): void {
+    this.subscriptions = subscriptions;
   }
 
   setLocalenvRoot(newRoot: string): void {
@@ -101,7 +107,103 @@ export class InfraManager {
     if (!component?.webUiUrl) {
       throw new Error(`No web UI available for: ${name}`);
     }
-    await extensionApi.env.openExternal(extensionApi.Uri.parse(component.webUiUrl));
+
+    // If a tab is already open for this component, just reveal it
+    const existing = this.webUiPanels.get(name);
+    if (existing) {
+      existing.reveal();
+      return;
+    }
+
+    // Create a new webview tab with the web UI embedded in an iframe
+    const webuiPanel = extensionApi.window.createWebviewPanel(
+      `localenv-webui-${name}`,
+      component.displayName,
+    );
+
+    webuiPanel.webview.html = this.generateWebUiHtml(component.displayName, component.webUiUrl);
+
+    // Handle messages from the webui panel (e.g. "open in browser" fallback)
+    webuiPanel.webview.onDidReceiveMessage(async (msg: { method?: string; url?: string }) => {
+      if (msg.method === 'openExternal' && msg.url) {
+        await extensionApi.env.openExternal(extensionApi.Uri.parse(msg.url));
+      }
+    });
+
+    // Track the panel and clean up when disposed
+    this.webUiPanels.set(name, webuiPanel);
+    webuiPanel.onDidDispose(() => {
+      this.webUiPanels.delete(name);
+    });
+
+    // Register for cleanup on extension deactivation
+    this.subscriptions?.push(webuiPanel);
+  }
+
+  private generateWebUiHtml(displayName: string, url: string): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: #1e1e2e; }
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 36px; padding: 0 12px;
+    background: #292940; border-bottom: 1px solid #3a3a50;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 12px; color: #a0a0b0;
+  }
+  .toolbar-title { font-weight: 600; color: #e0e0e0; }
+  .toolbar-url { color: #707080; margin-left: 12px; }
+  .toolbar-actions { display: flex; gap: 6px; }
+  .toolbar-btn {
+    background: #2a2a3d; color: #e0e0e0; border: 1px solid #3a3a50;
+    border-radius: 4px; padding: 2px 10px; font-size: 11px; cursor: pointer;
+  }
+  .toolbar-btn:hover { background: #32324a; }
+  iframe {
+    width: 100%; height: calc(100% - 36px); border: none;
+    background: #fff;
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <div>
+      <span class="toolbar-title">${this.escapeHtml(displayName)}</span>
+      <span class="toolbar-url">${this.escapeHtml(url)}</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="toolbar-btn" id="btn-reload" title="Reload">&#x21bb; Reload</button>
+      <button class="toolbar-btn" id="btn-external" title="Open in browser">&#x2197; Browser</button>
+    </div>
+  </div>
+  <iframe id="webui-frame" src="${this.escapeHtml(url)}" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"></iframe>
+  <script>
+    const api = window.acquirePodmanDesktopApi();
+    document.getElementById('btn-reload').addEventListener('click', () => {
+      document.getElementById('webui-frame').src = '${this.escapeJs(url)}';
+    });
+    document.getElementById('btn-external').addEventListener('click', () => {
+      api.postMessage({ method: 'openExternal', url: '${this.escapeJs(url)}' });
+    });
+    window.addEventListener('message', (event) => {
+      // no-op for now
+    });
+  </script>
+</body>
+</html>`;
+  }
+
+  private escapeHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  private escapeJs(str: string): string {
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
   }
 
   async getLogs(name: string, tail: number): Promise<string> {
