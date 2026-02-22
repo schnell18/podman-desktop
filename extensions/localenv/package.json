@@ -1,0 +1,70 @@
+{
+  "name": "localenv",
+  "displayName": "Localenv",
+  "description": "Manage local infrastructure components (databases, message brokers, caches) via the localenv framework",
+  "version": "1.0.0",
+  "icon": "icon.png",
+  "publisher": "podman-desktop",
+  "license": "Apache-2.0",
+  "engines": {
+    "podman-desktop": "^0.0.1"
+  },
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "localenv.openDashboard",
+        "title": "Localenv: Open Dashboard"
+      },
+      {
+        "command": "localenv.startComponent",
+        "title": "Localenv: Start Component"
+      },
+      {
+        "command": "localenv.stopComponent",
+        "title": "Localenv: Stop Component"
+      }
+    ],
+    "configuration": {
+      "title": "Localenv",
+      "properties": {
+        "localenv.rootPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the localenv repository root directory",
+          "format": "folder"
+        },
+        "localenv.pollingInterval": {
+          "type": "number",
+          "default": 5000,
+          "description": "Status polling interval in milliseconds"
+        },
+        "localenv.composeCommand": {
+          "type": "string",
+          "default": "podman compose",
+          "description": "Command to use for compose operations",
+          "enum": [
+            "podman compose",
+            "podman-compose",
+            "docker-compose"
+          ]
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest watch --coverage",
+    "watch": "vite build --watch"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@podman-desktop/api": "workspace:*",
+    "@types/js-yaml": "^4.0.9",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.10"
+  }
+}
