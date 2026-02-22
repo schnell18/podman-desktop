@@ -182,15 +182,15 @@ body {
 }
 
 .card-icon {
-  width: 32px;
-  height: 32px;
+  width: 51px;
+  height: 51px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--bg-secondary);
 }
-.card-icon svg { width: 20px; height: 20px; }
+.card-icon svg { width: 32px; height: 32px; }
 
 .status-badge {
   display: inline-flex;
